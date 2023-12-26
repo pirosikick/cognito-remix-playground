@@ -1,14 +1,15 @@
-import { createHmac } from "crypto";
 import {
-	CognitoIdentityProviderClient,
 	InvalidPasswordException,
 	SignUpCommand,
 	SignUpCommandOutput,
 	UsernameExistsException,
 } from "@aws-sdk/client-cognito-identity-provider";
-import { fromEnv, fromIni } from "@aws-sdk/credential-providers";
 import { z } from "zod";
-import type { Result } from "~/shared";
+import {
+	type Result,
+	createSecretHash,
+	getCognitoIdentityProviderClient,
+} from "~/shared";
 
 const EnvSchema = z.object({
 	USERPOOL_CLIENT_ID: z.string(),
@@ -44,23 +45,18 @@ export const signUp = async ({
 	const { USERPOOL_CLIENT_ID: clientId, USERPOOL_CLIENT_SECRET: clientSecret } =
 		EnvSchema.parse(process.env);
 
-	const client = new CognitoIdentityProviderClient({
-		credentials: process.env.AWS_PROFILE
-			? fromIni({
-					profile: process.env.AWS_PROFILE,
-			  })
-			: fromEnv(),
-	});
-	const hmac = createHmac("sha256", clientSecret);
-	hmac.update(email + clientId);
-	const secretHash = hmac.digest("base64");
+	const client = getCognitoIdentityProviderClient();
 
 	let output: SignUpCommandOutput;
 	try {
 		output = await client.send(
 			new SignUpCommand({
 				ClientId: clientId,
-				SecretHash: secretHash,
+				SecretHash: createSecretHash({
+					clientId,
+					clientSecret,
+					username: email,
+				}),
 				Username: email,
 				Password: password,
 				UserAttributes: [{ Name: "email", Value: email }],
