@@ -6,6 +6,10 @@ import {
 } from "@remix-run/node";
 import { Form, useActionData, useNavigation } from "@remix-run/react";
 import { z } from "zod";
+import {
+	commitSignUpSession,
+	getSignUpSession,
+} from "../signup/session.server";
 import { signUp } from "../signup/signup.server";
 
 const FormDataSchema = z.object({
@@ -29,14 +33,21 @@ export const action = async ({
 
 	const result = await signUp(data);
 	if (!result.success) {
-		console.log(result.value);
+		console.log("signUp failed", result.value);
 		return json({
 			errorCode:
 				result.value.code === "UsernameExists" ? "UsernameExists" : "Failed",
 		});
 	}
 
-	return redirect("/signup/confirm");
+	const session = await getSignUpSession(request.headers.get("Cookie"));
+	session.set("username", data.email);
+
+	return redirect("/signup/confirm", {
+		headers: {
+			"Set-Cookie": await commitSignUpSession(session),
+		},
+	});
 };
 
 export default function SignUpPage() {
