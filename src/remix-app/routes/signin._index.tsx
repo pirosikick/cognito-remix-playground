@@ -1,23 +1,33 @@
-import { Button, FormControl, FormLabel, Input } from "@chakra-ui/react";
+import {
+	Button,
+	Container,
+	FormControl,
+	FormLabel,
+	Heading,
+	Input,
+	Stack,
+} from "@chakra-ui/react";
 import { Form } from "@remix-run/react";
 
 export default function SignInPage() {
 	return (
-		<div>
-			<h2>Sign in</h2>
-			<Form method="post">
-				<FormControl>
-					<FormLabel>Email</FormLabel>
-					<Input type="email" name="email" />
-				</FormControl>
-				<FormControl>
-					<FormLabel>Password</FormLabel>
-					<Input type="password" name="password" />
-				</FormControl>
-				<Button mt={4} type="submit">
-					Sign in
-				</Button>
-			</Form>
-		</div>
+		<Container>
+			<Stack spacing={6}>
+				<Heading>Sign in</Heading>
+				<Form method="post">
+					<Stack spacing={4}>
+						<FormControl>
+							<FormLabel>Email</FormLabel>
+							<Input type="email" name="email" />
+						</FormControl>
+						<FormControl>
+							<FormLabel>Password</FormLabel>
+							<Input type="password" name="password" />
+						</FormControl>
+						<Button type="submit">Sign in</Button>
+					</Stack>
+				</Form>
+			</Stack>
+		</Container>
 	);
 }
